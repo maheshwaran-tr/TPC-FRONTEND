@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sit_placement_app/backend/requests/job_application_request.dart';
-import 'package:sit_placement_app/backend/requests/student_request.dart';
 
 import '../../backend/models/applied_job_model.dart';
 import '../../backend/requests/staff_request.dart';
@@ -27,25 +26,36 @@ class _JobAppliedListPageState extends State<JobAppliedListPage> {
     super.initState();
     initData();
   }
+
   Future<void> _refreshData() async {
     await Future.delayed(Duration(seconds: 2));
     await initData();
   }
+
   Future<void> initData() async {
+
+    // getting department of staff
     department = await StaffRequest.getStaffDept(widget.token);
-    List<JobAppliedModel>? allJobApplications = await JobApplicationRequest.findAll(widget.token);
-    List<JobAppliedModel>? jobAppliedStudentsDummy =
-        await StudentRequest.getJobAppliedForAllDeptStudents(
-            widget.token, department, 1);
-    List<StudentAppliedPermit> studentsDummy = [];
-    List<StudentAppliedPermit> studentModelList = [];
+
+    // getting all job applications
+    List<JobAppliedModel>? allJobApplications =
+        await JobApplicationRequest.findAll(widget.token);
+
+    // filtering applications based on department and status code
+    List<JobAppliedModel>? filteredApplications =
+        allJobApplications.where((application) {
+      return application.student.department == department &&
+          application.status.statusId == 1;
+    }).toList();
+
+
     setState(() {
-      jobAppliedStudents = jobAppliedStudentsDummy ?? [];
-      for(var application in jobAppliedStudents){
-        studentModelList.add(StudentAppliedPermit(jobApplication: application));
+      jobAppliedStudents = filteredApplications;
+      for (var application in jobAppliedStudents) {
+        studentApplication.add(StudentAppliedPermit(jobApplication: application));
       }
-      studentApplication = studentModelList;
     });
+
   }
 
   @override
@@ -97,7 +107,10 @@ class _JobAppliedListPageState extends State<JobAppliedListPage> {
                           ),
                         ),
                         title: Text(
-                          studentApplication[index].jobApplication.student.studentName,
+                          studentApplication[index]
+                              .jobApplication
+                              .student
+                              .studentName,
                           style: TextStyle(
                             fontFamily: 'Roboto',
                             fontWeight: FontWeight.bold,
@@ -146,7 +159,8 @@ class _JobAppliedListPageState extends State<JobAppliedListPage> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white, backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -166,9 +180,8 @@ class _JobAppliedListPageState extends State<JobAppliedListPage> {
   }
 
   void showApprovalMessage(BuildContext context) async {
-
     String msg = 'Selected students approved successfully!';
-    IconData iconToSet= Icons.check_circle;
+    IconData iconToSet = Icons.check_circle;
     MaterialColor clr = Colors.green;
 
     List<JobAppliedModel> selectedApplications = studentApplication
@@ -176,10 +189,10 @@ class _JobAppliedListPageState extends State<JobAppliedListPage> {
         .map((student) => student.jobApplication)
         .toList();
 
-    print(selectedApplications);
-    bool approvalResult =await StaffRequest.approveAppliedStudents(widget.token, selectedApplications);
-    print(approvalResult);
-    if(!approvalResult){
+    bool approvalResult = await StaffRequest.approveAppliedStudents(
+        widget.token, selectedApplications);
+
+    if (!approvalResult) {
       msg = 'Student Approval failed';
       iconToSet = Icons.cancel;
       clr = Colors.red;
@@ -204,7 +217,7 @@ class _JobAppliedListPageState extends State<JobAppliedListPage> {
       ),
     );
 
-    Overlay.of(context)!.insert(overlayEntry);
+    Overlay.of(context).insert(overlayEntry);
 
     // Delay for 2 seconds
     Future.delayed(Duration(seconds: 2), () {
@@ -257,13 +270,9 @@ class _JobAppliedListPageState extends State<JobAppliedListPage> {
   }
 }
 
-
-class StudentAppliedPermit{
+class StudentAppliedPermit {
   final JobAppliedModel jobApplication;
   bool isApproved;
 
-  StudentAppliedPermit({
-    required this.jobApplication,
-    this.isApproved = true
-  });
+  StudentAppliedPermit({required this.jobApplication, this.isApproved = true});
 }

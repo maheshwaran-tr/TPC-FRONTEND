@@ -48,5 +48,5 @@ class Urls {
   static const String getImageByUsername = "$baseurl/images/img";
 
   // Job Application Urls
-  static const String findAllJobApplications = "$baseurl/sit/applications/all";
+  static const String findAllJobApplications = "$baseurl/applications/all";
 }

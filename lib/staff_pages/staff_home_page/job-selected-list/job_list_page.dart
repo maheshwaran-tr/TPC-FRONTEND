@@ -1,71 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:sit_placement_app/backend/models/applied_job_model.dart';
+import 'package:sit_placement_app/backend/models/job_post_model.dart';
 import 'package:sit_placement_app/backend/requests/job_request.dart';
 
-import '../../backend/models/student_model.dart';
-import 'new_upload_status.dart';
+import '../../../backend/requests/staff_request.dart';
 
-class StudentJobApplicationList extends StatefulWidget {
-
+class JobSelectedListPage extends StatefulWidget {
   final token;
-  final Student student;
-
-  const StudentJobApplicationList({super.key,required this.token,required this.student});
+  const JobSelectedListPage({super.key,required this.token});
 
   @override
-  State<StudentJobApplicationList> createState() => _StudentJobApplicationListState();
+  State<JobSelectedListPage> createState() => _JobSelectedListPageState();
 }
 
-class _StudentJobApplicationListState extends State<StudentJobApplicationList> {
-  List<JobAppliedModel>? jobApplications = [];
-  List<String> jobNames = [];
+class _JobSelectedListPageState extends State<JobSelectedListPage> {
+  List<JobAppliedModel> filteredApplications = [];
+  List<JobPostModel> allJobs = [];
   String searchText = '';
-  var isLoaded = true;
-
   @override
   void initState() {
     super.initState();
-    initializeData();
+    loadData();
   }
 
-  Future<void> initializeData() async {
-    List<JobAppliedModel>? applicationList = await JobRequest.getAllApplications(widget.token);
-    applicationList = applicationList.where((app)=>app.student.rollNo == widget.student.rollNo).toList();
-
-    setState(() {
-      for(var obj in applicationList!){
-        jobNames.add(obj.jobPost.companyName);
-      }
-      jobApplications = applicationList;
-    });
-  }
-
-  void filterStudentsByJobs(String selectedCompany) {
-    final List<JobAppliedModel> thisJobAppliedStudents = jobApplications!
-        .where((ja) => ja.jobPost.companyName == selectedCompany)
-        .toList();
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => UploadJobStatus(
-          theJob: thisJobAppliedStudents[0],
-          token: widget.token,
-        ),
-      ),
-    );
-  }
-
-  List<String> getFilteredJobs() {
-    if (searchText.isEmpty) {
-      return jobNames;
-    } else {
-      return jobNames
-          .where(
-              (jobname) => jobname!.toLowerCase().contains(searchText.toLowerCase()))
-          .toList();
-    }
-  }
+   loadData() async{
+     String dept = await StaffRequest.getStaffDept(widget.token);
+     List<JobAppliedModel> theAllApplications = await JobRequest.getAllApplications(widget.token);
+     setState(() {
+       filteredApplications = theAllApplications.where((application){
+         return application.student.department == dept && application.status.statusId == 1;
+       }).toList();
+       for(var obj in filteredApplications){
+         allJobs.add(obj.jobPost);
+       }
+     });
+   }
 
   @override
   Widget build(BuildContext context) {
@@ -162,12 +131,12 @@ class _StudentJobApplicationListState extends State<StudentJobApplicationList> {
                       ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
-                        itemCount: getFilteredJobs().length,
+                        itemCount: filteredApplications.length,
                         itemBuilder: (context, index) {
-                          final department = getFilteredJobs()[index];
+                          final filteredJobs = filteredApplications[index];
                           return GestureDetector(
                             onTap: () {
-                              filterStudentsByJobs(department!);
+                              // filterStudentsByJobs(filteredJobs.jobId!);
                             },
                             child: Card(
                               elevation: 4,
@@ -181,7 +150,7 @@ class _StudentJobApplicationListState extends State<StudentJobApplicationList> {
                                   MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      department!,
+                                      filteredJobs.jobPost.companyName!,
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 18,
@@ -205,7 +174,4 @@ class _StudentJobApplicationListState extends State<StudentJobApplicationList> {
       ),
     );
   }
-
-
-
 }

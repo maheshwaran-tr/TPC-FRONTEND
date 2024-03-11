@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_zoom_drawer/flutter_zoom_drawer.dart';
 import 'package:sit_placement_app/staff_pages/StaffNotification/StaffNotification.dart';
 import 'package:sit_placement_app/staff_pages/staff_home_page/add_student.dart';
+import 'package:sit_placement_app/staff_pages/staff_home_page/job-selected-list/job_list_page.dart';
 import 'package:sit_placement_app/staff_pages/staff_home_page/job_applied_list.dart';
 import 'package:sit_placement_app/staff_pages/staff_home_page/staff_approval_page.dart';
 import 'package:sit_placement_app/staff_pages/staff_home_page/staff_posted_job.dart';
@@ -342,10 +343,13 @@ class _StaffDashState extends State<StaffDash> {
       ),
     );
   }
-}
-void _navigateToPage(String pageTitle) {
-  switch (pageTitle) {
-    case "Approved \nJobApply List":
-
+  void _navigateToPage(String pageTitle) {
+    switch (pageTitle) {
+      case "Job Selected List":
+        Navigator.push(context,
+          MaterialPageRoute(
+            builder: (context) => JobSelectedListPage(token: widget.token),
+          ),);
+    }
   }
 }

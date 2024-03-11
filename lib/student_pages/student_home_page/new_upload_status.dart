@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:sit_placement_app/backend/models/status_model.dart';
+import 'package:sit_placement_app/backend/requests/update_status_request.dart';
 import '../../backend/models/applied_job_model.dart';
 
 class UploadJobStatus extends StatefulWidget {
+  final token;
   final JobAppliedModel theJob;
 
-  const UploadJobStatus({Key? key, required this.theJob}) : super(key: key);
+  const UploadJobStatus({Key? key, required this.theJob,required this.token}) : super(key: key);
 
   @override
   State<UploadJobStatus> createState() => _UploadJobStatusState();
@@ -205,14 +207,15 @@ class _UploadJobStatusState extends State<UploadJobStatus> {
       return;
     }
 
-    try {
-      var uri = Uri.parse('http://10.0.2.2:7070/sit/proofs/upload-img');
-      var request = http.MultipartRequest('POST', uri);
-      request.fields['application_id'] = widget.theJob.jobAppliedId.toString(); // Replace with the actual username
-      request.files.add(await http.MultipartFile.fromPath('file', proof));
+    uploadProof();
+    updateStatus();
 
-      var response = await request.send();
-      if (response.statusCode == 200) {
+  }
+
+  void uploadProof() async {
+    try {
+      var responseStatusCode = await UpdateStatusRequest.uploadProof(widget.token, widget.theJob.jobAppliedId.toString(), proof);
+      if (responseStatusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Proof uploaded successfully!'),
@@ -232,21 +235,13 @@ class _UploadJobStatusState extends State<UploadJobStatus> {
         ),
       );
     }
+  }
 
+  void updateStatus() async{
     try{
-      var uri = Uri.parse('http://10.0.2.2:7070/sit/admin/update-status');
-      JobAppliedModel updatedApplication = widget.theJob;
-      updatedApplication.status = new StatusModel(statusId: 3, statusName: "Waiting for result");
-      final response = await http.put(
-        uri,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(widget.theJob.toJson())
-      );
-
-      
-      if (response.statusCode == 200) {
+      StatusModel updatedStatus = new StatusModel(statusId: 3, statusName: "Selected");
+      var responseStatusCode = await UpdateStatusRequest.updateStatus(widget.token, widget.theJob, updatedStatus);
+      if (responseStatusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Status uploaded successfully!'),
@@ -260,7 +255,6 @@ class _UploadJobStatusState extends State<UploadJobStatus> {
         );
       }
     }catch(e){
-      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error uploading Status: $e'),
