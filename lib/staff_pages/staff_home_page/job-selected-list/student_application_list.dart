@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sit_placement_app/staff_pages/staff_home_page/student_details.dart';
 
-import '../../ExcelService/student_excel_service/student_details_excel.dart';
-import '../../backend/models/applied_job_model.dart';
-import '../../backend/models/job_post_model.dart';
-import '../../backend/models/student_model.dart';
+import '../../../backend/models/applied_job_model.dart';
+
+
 
 class StudentListByAppliedJobs extends StatefulWidget {
   final List<JobAppliedModel> jobApplications;
@@ -39,11 +38,11 @@ class _StudentListByAppliedJobsState extends State<StudentListByAppliedJobs> {
   }
 
   void downloadData() async{
-    List<Student> studenList = [];
-    for(var obj in widget.jobApplications){
-      studenList.add(obj.student);
-    }
-    await StudentExcelService.createExcelFile(studenList,widget.jobApplications[0].jobPost.companyName);
+    // List<Student> studenList = [];
+    // for(var obj in widget.jobApplications){
+    //   studenList.add(obj.student);
+    // }
+    // await StudentExcelService.createExcelFile(studenList,widget.jobApplications[0].jobPost.companyName);
   }
   @override
   Widget build(BuildContext context) {
@@ -182,25 +181,5 @@ class _StudentListByAppliedJobsState extends State<StudentListByAppliedJobs> {
             ),
           ),
         ]));
-  }
-  void filterStudentsByJobs(int jobId) {
-    List<JobAppliedModel> filteredList = filteredJobApplications.where((jobApplied) => jobApplied.jobPost.jobId == jobId && jobApplied.status.statusId == 3).toList();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => StudentListByAppliedJobs(jobApplications: filteredList),
-      ),
-    );
-  }
-
-  List<JobAppliedModel> getFilteredJobs() {
-    if (searchText.isEmpty) {
-      return filteredJobApplications;
-    } else {
-      return filteredJobApplications
-          .where(
-              (tempJob) => tempJob.jobPost.companyName.toLowerCase().contains(searchText.toLowerCase()))
-          .toList();
-    }
   }
 }

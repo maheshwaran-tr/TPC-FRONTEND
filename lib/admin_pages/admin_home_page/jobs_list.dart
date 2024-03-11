@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sit_placement_app/admin_pages/admin_home_page/student_list_for_applied_jobs.dart';
 import 'package:sit_placement_app/backend/models/job_post_model.dart';
 import 'package:sit_placement_app/backend/models/applied_job_model.dart';
 import 'package:sit_placement_app/backend/requests/job_request.dart';
+
+import '../../staff_pages/staff_home_page/job-selected-list/student_application_list.dart';
 
 class SelectedJobApplicationList extends StatefulWidget {
 

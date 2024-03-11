@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sit_placement_app/backend/requests/job_application_request.dart';
-
 import '../../backend/models/applied_job_model.dart';
 import '../../backend/requests/staff_request.dart';
+
 
 class JobAppliedListPage extends StatefulWidget {
   final token;
@@ -268,6 +268,7 @@ class _JobAppliedListPageState extends State<JobAppliedListPage> {
       );
     });
   }
+
 }
 
 class StudentAppliedPermit {
